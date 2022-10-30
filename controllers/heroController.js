@@ -1,24 +1,49 @@
 const {Hero, Power, sequelize} = require('../db/models');
 const createError = require('http-errors');
 
+// module.exports.getAllHeroes = 
+// async(req, res, next) => {
+//     try {
+//         const foundHeroes = await Hero.findAll({
+//             attributes: {
+//                 exclude: ['createdAt', 'updatedAt']
+//             }
+//         });
+//     } catch(err){
+//         next(err);
+//     }
+// };
 module.exports.getAllHeroes = 
 async(req, res, next) => {
     try {
         const foundHeroes = await Hero.findAll({
-            attributes: {
-                exclude: ['createdAt', 'updatedAt']
-            }
+            attributes: {exclude: ['createdAt', 'updatedAt']},
+            include: {
+                model: 'Power',
+                attributes: {exclude: ['createdAt', 'updatedAt']},
+            },
+            through: {attributes: []},
         });
+        const sendHeros= {};
+        foundHeroes.forEach(hero => {
+            sendHeros[hero.id] = hero;
+            sendHeros[hero.id].superpowers = [];
+        });
+        foundHeroes.forEach(hero => {
+            hero['Powers.id'] && sendHeros[hero.id].superpowers.push(hero['Powers.id']);
+            delete hero['Powers.id'];
+        });
+        res.status(200).send({data: Object.values(sendHeros)});
     } catch(err){
         next(err);
     }
 };
 
+
 module.exports.getHeroById = 
 async(req, res, next) => {
     try {
         const foundHero = await Hero.findByPk(id);
-        return foundHero;
         if (foundHero) {
             return res.status(200).send({data: foundHero});
         } 
@@ -59,3 +84,4 @@ async(req, res, next) => {
         next(err);
     }
 };
+
