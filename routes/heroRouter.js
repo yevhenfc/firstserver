@@ -1,9 +1,12 @@
 const {Router} = require('express');
 const {heroController} = require('../controllers')
-
 const heroRouter = Router();
+const {uploadFile} = require('../middleware');
 
-heroRouter.route('/').get(heroController.getAllHeroes);
+heroRouter
+.route('/')
+.post(uploadFile.uploadHeroImage, heroController.createNewHero);
+.get(heroController.getAllHeroes);
 
 heroRouter.route('/:heroId')
 .get(heroController.getHeroById)
